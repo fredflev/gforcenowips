@@ -1,0 +1,36 @@
+name: Update NVIDIA IP List
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs daily at midnight UTC
+  workflow_dispatch: # Allows you to run it manually for testing
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to push changes back to the repo
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Fetch and Parse IPs
+        run: |
+          # Fetch JSON and use jq to extract IPv4 and IPv6 prefixes into a single text file
+          curl -s https://ipranges.nvidiangn.net/v1/ips | \
+          jq -r '.prefixes[].ip_prefix, .ipv6_prefixes[].ipv6_prefix' > nvidia_ips.txt
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add nvidia_ips.txt
+
+          # Only commit if the file actually changed to avoid empty commits
+          if git diff --cached --quiet; then
+            echo "No changes detected."
+          else
+            git commit -m "Automated update: $(date -u +'%Y-%m-%d')"
+            git push
+          fi
