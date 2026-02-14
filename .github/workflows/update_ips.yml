@@ -18,7 +18,7 @@ jobs:
       - name: Fetch and Parse IPs
         run: |
           # Use the correct key 'ipList' based on the actual API response
-          curl -L -s https://ipranges.nvidiangn.net/v1/ips | jq -r '.ipList[]' > nvidia_ips.txt
+          curl -L -s -H "User-Agent: Mozilla/5.0" https://ipranges.nvidiangn.net/v1/ips | jq -r '.ipList[]' > nvidia_ips.txt
 
           # Safety check to ensure we didn't get an empty file
           if [ ! -s nvidia_ips.txt ]; then
