@@ -17,9 +17,10 @@ jobs:
 
       - name: Fetch and Parse IPs
         run: |
-          # Fetch JSON and use jq to extract IPv4 and IPv6 prefixes into a single text file
-          curl -s https://ipranges.nvidiangn.net/v1/ips | \
-          jq -r '.prefixes[].ip_prefix, .ipv6_prefixes[].ipv6_prefix' > nvidia_ips.txt
+          # Fetch JSON and safely extract prefixes.
+          # The '[]?' syntax handles cases where a key might be missing or null.
+          curl -L -s https://ipranges.nvidiangn.net/v1/ips | \
+          jq -r '(.prefixes[]? .ip_prefix // empty), (.ipv6_prefixes[]? .ipv6_prefix // empty)' > nvidia_ips.txt
 
       - name: Commit and Push Changes
         run: |
